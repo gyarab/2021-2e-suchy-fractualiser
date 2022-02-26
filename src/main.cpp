@@ -19,6 +19,7 @@ void key_callback(GLFWwindow *window, int key, [[maybe_unused]] int scancode, in
 }
 
 void framebuffer_size_callback([[maybe_unused]] GLFWwindow *window, int width, int height) {
+    std::cout << "changed size" << std::endl;
     glViewport(0, 0, width, height);
 }
 
@@ -32,7 +33,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow *window = glfwCreateWindow(640, 480, "My Title", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(800, 800, "fractals-distinct-title", nullptr, nullptr);
     glfwMakeContextCurrent(window);
 
     if (!window) {
@@ -56,10 +57,25 @@ int main() {
             "#version 330 core\n"
             "out vec4 FragColor;\n"
             "uniform int width;\n"
-            "uniform float time;\n"
+            "uniform float iterations;\n"
             "\n"
             "void main() {\n"
-            "    FragColor = vec4((gl_FragCoord.x+1.0f)/(width/2)*time, 0.5f, 0.2f, 1.0f);\n"
+            "    int center = width/2;\n"
+            "    float x = (gl_FragCoord.x-center)/width*3-0.8;\n"
+            "    float y = (gl_FragCoord.y-center)/width*3;\n"
+            "    float ogx = x;\n"
+            "    float ogy = y;\n"
+            "    int i;\n"
+            "    bool suc = true;\n"
+            "    for (i = 0; i < iterations; i++) {\n"
+            "         float tempx = x*x - y*y + ogx;\n"
+            "         float tempy = 2*y*x + ogy;\n"
+            "         x = tempx;\n"
+            "         y = tempy;\n"
+            "         if (x*x+y*y > 3000) { suc = false; break; }\n"
+            "    }\n"
+            "    if (suc) FragColor = vec4(0.7f, 0.0f, 0.0f, 1.0f);\n"
+            "    else FragColor = vec4(0.0f, 0.7f, 0.0f, 1.0f);\n"
             "}";
 
     auto *sh = new Shader(fragmentShaderSource);
@@ -74,6 +90,7 @@ int main() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) nullptr);
     glEnableVertexAttribArray(0);
 
+    sh->setFloat("iterations", 30);
 
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -81,7 +98,6 @@ int main() {
         int dimensions[4];
         glGetIntegerv(GL_VIEWPORT, dimensions);
         sh->setInt("width", dimensions[3]);
-        sh->setFloat("time", glfwGetTime());
         sh->use();
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glfwSwapBuffers(window);
