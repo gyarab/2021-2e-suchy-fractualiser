@@ -1,11 +1,17 @@
-
-#include "shader.h"
 #include "application.h"
+#include "shader.h"
+#include <fstream>
 #include <iostream>
 #include <sstream>
-#include <fstream>
 
-Application::Application() {
+Application::Application(GLFWwindow *window) {
+    fractalSettings = new FractalSettings{};
+    this->window = window;
+}
+
+Application::~Application() {
+    delete fractalSettings;
+    std::cout << "Cleaned up application" << std::endl;
 }
 
 void key_callback(GLFWwindow *window, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mods) {
@@ -14,44 +20,42 @@ void key_callback(GLFWwindow *window, int key, [[maybe_unused]] int scancode, in
 }
 
 void framebuffer_size_callback([[maybe_unused]] GLFWwindow *window, int width, int height) {
-    std::cout << "changed size" << std::endl;
     glViewport(0, 0, width, height);
 }
 
-void Application::main_loop(GLFWwindow *window, Shader *sh) {
-    int iterations = 30;
-    double offsetx = 0;
-    double offsety = 0;
-    double zoom = 1;
+void Application::handleInput() {}
 
+void Application::mainLoop(Shader *sh) {
     while (!glfwWindowShouldClose(window)) {
         if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
-            iterations++;
+            fractalSettings->iterations++;
         if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
-            iterations--;
+            fractalSettings->iterations--;
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            offsetx += 0.01f * zoom;
+            fractalSettings->offset_x += 0.01f * fractalSettings->zoom;
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            offsetx -= 0.01f * zoom;
+            fractalSettings->offset_x -= 0.01f * fractalSettings->zoom;
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-            offsety += 0.01f * zoom;
+            fractalSettings->offset_y += 0.01f * fractalSettings->zoom;
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-            offsety -= 0.01f * zoom;
+            fractalSettings->offset_y -= 0.01f * fractalSettings->zoom;
         if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-            zoom -= 0.1f * zoom;
+            fractalSettings->zoom -= 0.1f * fractalSettings->zoom;
         if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-            zoom += 0.1f * zoom;
-        if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
-            std::cout << zoom << std::endl;
+            fractalSettings->zoom += 0.1f * fractalSettings->zoom;
+        if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) {
+            std::cout << "zoom: " << fractalSettings->zoom << std::endl;
+            std::cout << "iterations: " << fractalSettings->iterations << std::endl;
+        }
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         int dimensions[4];
         glGetIntegerv(GL_VIEWPORT, dimensions);
-        sh->setInt("width", dimensions[3]);
-        sh->setInt("iterations", iterations);
-        sh->setDouble("offsetx", offsetx);
-        sh->setDouble("offsety", offsety);
-        sh->setDouble("zoom", zoom);
+        sh->setIntVec("dimensions", dimensions[2], dimensions[3]);
+        sh->setInt("iterations", fractalSettings->iterations);
+        sh->setDouble("offsetx", fractalSettings->offset_x);
+        sh->setDouble("offsety", fractalSettings->offset_y);
+        sh->setDouble("zoom", fractalSettings->zoom);
         sh->use();
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glfwSwapBuffers(window);
@@ -59,12 +63,11 @@ void Application::main_loop(GLFWwindow *window, Shader *sh) {
     }
 }
 
-void Application::run(GLFWwindow* window) {
+void Application::run() {
     glViewport(0, 0, 800, 800);
 
     glfwSetKeyCallback(window, key_callback);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
 
     std::ifstream shader_file("shader.glsl");
     std::stringstream ss{};
@@ -73,9 +76,7 @@ void Application::run(GLFWwindow* window) {
 
     std::string fragmentShaderSource = ss.str();
 
-
-
-    auto* sh = new Shader(fragmentShaderSource);
+    auto *sh = new Shader(fragmentShaderSource);
 
     // create an object that covers the whole screen so the fragment shader runs
     unsigned int VBO, VAO;
@@ -87,5 +88,7 @@ void Application::run(GLFWwindow* window) {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)nullptr);
     glEnableVertexAttribArray(0);
 
-    main_loop(window, sh);
+    mainLoop(sh);
+
+    delete sh;
 }

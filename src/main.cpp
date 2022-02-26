@@ -1,9 +1,7 @@
-#include "shader.h"
 #include "application.h"
-#include <GLFW/glfw3.h>
-#include <glad/glad.h>
-#include <iostream>
+#include "shader.h"
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
 int main() {
@@ -31,8 +29,10 @@ int main() {
         return 1;
     }
 
-    Application* app = new Application();
-    app->run(window);
+    Application *app = new Application(window);
+    app->run();
+
+    delete app;
 
     glfwTerminate();
 }

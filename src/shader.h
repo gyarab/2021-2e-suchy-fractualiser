@@ -13,7 +13,8 @@ class Shader {
                                       "}\0";
 
     static bool compiled(unsigned int shaderId);
-public:
+
+  public:
     explicit Shader(const std::string &fragmentShaderSource);
 
     unsigned int ID;
@@ -25,7 +26,8 @@ public:
     void setFloat(const std::string &name, float value) const;
 
     void setDouble(const std::string &name, double value) const;
+
+    void setIntVec(const std::string &name, int value0, int value1) const;
 };
 
-
-#endif //FRACTUALISER_SHADER_H
+#endif // FRACTUALISER_SHADER_H
