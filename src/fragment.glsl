@@ -5,6 +5,7 @@ uniform int iterations;
 uniform double offsetx;
 uniform double offsety;
 uniform double zoom;
+uniform sampler1D texture1;
 
 void main() {
     double x = (gl_FragCoord.x-dimensions.x/2)/dimensions.y*zoom+offsetx;
@@ -15,12 +16,14 @@ void main() {
     bool suc = true;
     int i;
     for (i = 0; i < iterations; i++) {
+         // tempx = x*x - y*y - 0.8;
+         // tempy = 2*y*x + 0.156;
          tempx = x*x - y*y + ogx;
          tempy = 2*y*x + ogy;
          x = tempx;
          y = tempy;
-         if (x*x+y*y > 3000) { break; }
+         if (x*x+y*y > 3000000) { break; }
     }
-    if (i == iterations) FragColor = vec4(0.7f, 0.0f, 0.0f, 1.0f);
-    else FragColor = vec4(0.0f, 0.7f, 0.0f, 1.0f);
+    if (i == iterations) FragColor = texture(texture1, 0.0f);
+    else FragColor = texture(texture1, float(i)/float(iterations)-0.5f);
 }
