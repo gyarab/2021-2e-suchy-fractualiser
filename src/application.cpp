@@ -5,14 +5,17 @@
 #include <sstream>
 
 Application::Application(GLFWwindow *window) {
-    fractalSettings = new FractalSettings{};
-    inputSettings = new InputSettings{};
+    fractalSettings = new FractalSettings;
+    inputSettings = new InputSettings;
+    performance = new Performance;
     this->window = window;
     glfwSetWindowUserPointer(window, this);
 }
 
 Application::~Application() {
     delete fractalSettings;
+    delete inputSettings;
+    delete performance;
     glfwSetWindowUserPointer(this->window, nullptr);
     std::cout << "Cleaned up application" << std::endl;
 }
@@ -70,11 +73,22 @@ void Application::handleInput(int key, int action) {
         inputSettings->deltaIter += -k;
         break;
     case GLFW_KEY_G:
-        std::cout << "deltaOffsetX " << inputSettings->deltaOffsetX << "\n"
-                  << "deltaOffsetY " << inputSettings->deltaOffsetY << "\n"
-                  << "deltaIter    " << inputSettings->deltaIter << "\n"
-                  << "deltaZoom    " << inputSettings->deltaZoom << "\n"
-                  << std::endl;
+        if (action == GLFW_PRESS) {
+            std::cout << "deltaOffsetX " << inputSettings->deltaOffsetX << "\n"
+                      << "deltaOffsetY " << inputSettings->deltaOffsetY << "\n"
+                      << "deltaIter    " << inputSettings->deltaIter << "\n"
+                      << "deltaZoom    " << inputSettings->deltaZoom << "\n"
+                      << std::endl;
+
+            std::cout.precision(17);
+            std::cout << "offsetX " << fractalSettings->offsetX << "\n"
+                      << "offsetY " << fractalSettings->offsetY << "\n"
+                      << "iter    " << fractalSettings->iterations << "\n"
+                      << "zoom    " << fractalSettings->zoom << "\n"
+                      << std::endl;
+            std::cout << "time to render: " << performance->timeToRender << "\n" << std::endl;
+        }
+        break;
 
     default:
         std::cout << "ignoring key" << std::endl;
@@ -82,7 +96,9 @@ void Application::handleInput(int key, int action) {
 }
 
 void Application::mainLoop(Shader *sh) {
+    clock_t start, end;
     while (!glfwWindowShouldClose(window)) {
+        start = clock();
         // update viewport according to input
         fractalSettings->iterations += inputSettings->deltaIter;
         fractalSettings->offsetX += inputSettings->deltaOffsetX * fractalSettings->zoom;
@@ -104,6 +120,8 @@ void Application::mainLoop(Shader *sh) {
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glfwSwapBuffers(window);
         glfwPollEvents();
+        end = clock();
+        performance->timeToRender = end - start;
     }
 }
 
@@ -120,7 +138,9 @@ void Application::run() {
 
     std::string fragmentShaderSource = ss.str();
 
-    auto *sh = new Shader(fragmentShaderSource);
+    std::string formula = "z*z-0.8+0.156i";
+
+    auto *sh = new Shader(fragmentShaderSource, formula);
 
     // create an object that covers the whole screen so the fragment shader runs
     unsigned int VBO, VAO;
@@ -134,7 +154,6 @@ void Application::run() {
 
     unsigned int texture;
     glGenTextures(1, &texture);
-    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_1D, texture);
     glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -142,7 +161,6 @@ void Application::run() {
 
     glTexImage1D(GL_TEXTURE_1D, 0, GL_RGB, sizeof(data) / 3, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 
-    sh->setInt("texture1", 0);
     mainLoop(sh);
 
     delete sh;

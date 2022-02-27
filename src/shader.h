@@ -15,7 +15,7 @@ class Shader {
     static bool compiled(unsigned int shaderId);
 
   public:
-    explicit Shader(const std::string &fragmentShaderSource);
+    Shader(const std::string &fragmentShaderSource, const std::string &formula);
 
     unsigned int ID;
 
@@ -28,6 +28,8 @@ class Shader {
     void setDouble(const std::string &name, double value) const;
 
     void setIntVec(const std::string &name, int value0, int value1) const;
+
+    std::string fabricateShaderCode(std::string src, const std::string &formula);
 };
 
 #endif // FRACTUALISER_SHADER_H

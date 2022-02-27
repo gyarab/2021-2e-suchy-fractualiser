@@ -9,6 +9,10 @@ struct FractalSettings {
     double zoom = 5.0;
     double offsetX = -0.8;
     double offsetY = 0.0;
+    // int iterations = 769;
+    // double zoom = 0.00000000000005276;
+    // double offsetX = -1.49485999999895625;
+    // double offsetY = 0.0;
 };
 
 struct InputSettings {
@@ -18,6 +22,10 @@ struct InputSettings {
     double deltaOffsetY = 0;
 };
 
+struct Performance {
+    long long timeToRender = 0;
+};
+
 class Application {
 
     static constexpr float VERTICES[] = {
@@ -25,6 +33,7 @@ class Application {
         1.0f,  1.0f,  0.0f, 1.0f,  -1.0f, 0.0f, -1.0f, -1.0f, 0.0f,
     };
 
+    Performance *performance;
     FractalSettings *fractalSettings;
     InputSettings *inputSettings;
     GLFWwindow *window;
