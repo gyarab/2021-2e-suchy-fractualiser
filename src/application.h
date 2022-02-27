@@ -7,8 +7,15 @@
 struct FractalSettings {
     int iterations = 30;
     double zoom = 5.0;
-    double offset_x = -0.8;
-    double offset_y = 0.0;
+    double offsetX = -0.8;
+    double offsetY = 0.0;
+};
+
+struct InputSettings {
+    int deltaIter = 0;
+    double deltaZoom = 0;
+    double deltaOffsetX = 0;
+    double deltaOffsetY = 0;
 };
 
 class Application {
@@ -19,6 +26,7 @@ class Application {
     };
 
     FractalSettings *fractalSettings;
+    InputSettings *inputSettings;
     GLFWwindow *window;
 
   public:
@@ -26,7 +34,7 @@ class Application {
     ~Application();
     void mainLoop(Shader *sh);
     void run();
-    void handleInput();
+    void handleInput(int key, int action);
 };
 
 #endif

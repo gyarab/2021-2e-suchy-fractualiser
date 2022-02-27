@@ -6,56 +6,100 @@
 
 Application::Application(GLFWwindow *window) {
     fractalSettings = new FractalSettings{};
+    inputSettings = new InputSettings{};
     this->window = window;
+    glfwSetWindowUserPointer(window, this);
 }
 
 Application::~Application() {
     delete fractalSettings;
+    glfwSetWindowUserPointer(this->window, nullptr);
     std::cout << "Cleaned up application" << std::endl;
 }
 
 void key_callback(GLFWwindow *window, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mods) {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    // the function passed to glfwSetKeyCallback must be static, so we reroute it to our application method
+    ((Application *)glfwGetWindowUserPointer(window))->handleInput(key, action);
 }
 
 void framebuffer_size_callback([[maybe_unused]] GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-void Application::handleInput() {}
+void Application::handleInput(int key, int action) {
+
+    int k;
+    switch (action) {
+    case GLFW_PRESS:
+        k = 1;
+        break;
+    case GLFW_RELEASE:
+        k = -1;
+        break;
+    default:
+        return; // this is GLFW_REPEAT, we ignore this event
+    }
+
+    switch (key) {
+    case GLFW_KEY_ESCAPE:
+        if (action == GLFW_PRESS)
+            glfwSetWindowShouldClose(window, GLFW_TRUE);
+        break;
+    case GLFW_KEY_W:
+        inputSettings->deltaOffsetY += 0.01 * k;
+        break;
+    case GLFW_KEY_S:
+        inputSettings->deltaOffsetY += -0.01 * k;
+        break;
+    case GLFW_KEY_A:
+        inputSettings->deltaOffsetX += -0.01 * k;
+        break;
+    case GLFW_KEY_D:
+        inputSettings->deltaOffsetX += 0.01 * k;
+        break;
+    case GLFW_KEY_E:
+        inputSettings->deltaZoom += -0.1 * k;
+        break;
+    case GLFW_KEY_Q:
+        inputSettings->deltaZoom += 0.1 * k;
+        break;
+    case GLFW_KEY_F:
+        inputSettings->deltaIter += k;
+        break;
+    case GLFW_KEY_C:
+        inputSettings->deltaIter += -k;
+        break;
+    case GLFW_KEY_G:
+        std::cout << "deltaOffsetX " << inputSettings->deltaOffsetX << "\n"
+                  << "deltaOffsetY " << inputSettings->deltaOffsetY << "\n"
+                  << "deltaIter    " << inputSettings->deltaIter << "\n"
+                  << "deltaZoom    " << inputSettings->deltaZoom << "\n"
+                  << std::endl;
+
+    default:
+        std::cout << "ignoring key" << std::endl;
+    }
+}
 
 void Application::mainLoop(Shader *sh) {
     while (!glfwWindowShouldClose(window)) {
-        if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
-            fractalSettings->iterations++;
-        if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
-            fractalSettings->iterations--;
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            fractalSettings->offset_x += 0.01f * fractalSettings->zoom;
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            fractalSettings->offset_x -= 0.01f * fractalSettings->zoom;
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-            fractalSettings->offset_y += 0.01f * fractalSettings->zoom;
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-            fractalSettings->offset_y -= 0.01f * fractalSettings->zoom;
-        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-            fractalSettings->zoom -= 0.1f * fractalSettings->zoom;
-        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-            fractalSettings->zoom += 0.1f * fractalSettings->zoom;
-        if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) {
-            std::cout << "zoom: " << fractalSettings->zoom << std::endl;
-            std::cout << "iterations: " << fractalSettings->iterations << std::endl;
-        }
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        // update viewport according to input
+        fractalSettings->iterations += inputSettings->deltaIter;
+        fractalSettings->offsetX += inputSettings->deltaOffsetX * fractalSettings->zoom;
+        fractalSettings->offsetY += inputSettings->deltaOffsetY * fractalSettings->zoom;
+        fractalSettings->zoom += inputSettings->deltaZoom * fractalSettings->zoom;
+
+        // set shader uniforms
         int dimensions[4];
         glGetIntegerv(GL_VIEWPORT, dimensions);
+
         sh->setIntVec("dimensions", dimensions[2], dimensions[3]);
         sh->setInt("iterations", fractalSettings->iterations);
-        sh->setDouble("offsetx", fractalSettings->offset_x);
-        sh->setDouble("offsety", fractalSettings->offset_y);
+        sh->setDouble("offsetx", fractalSettings->offsetX);
+        sh->setDouble("offsety", fractalSettings->offsetY);
         sh->setDouble("zoom", fractalSettings->zoom);
+
+        // draw
         sh->use();
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glfwSwapBuffers(window);
