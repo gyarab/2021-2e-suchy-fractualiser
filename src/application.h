@@ -20,6 +20,17 @@ struct InputSettings {
     double deltaZoom = 0;
     double deltaOffsetX = 0;
     double deltaOffsetY = 0;
+    double mouseDeltaX = 0;
+    double mouseDeltaY = 0;
+};
+
+struct MouseState {
+    bool lmbPressed = false;
+    bool rmbPressed = false;
+    bool mmbPressed = false;
+    double posX = 0;
+    double posY = 0;
+    double deltaZoom = 0;
 };
 
 struct Performance {
@@ -36,14 +47,21 @@ class Application {
     Performance *performance;
     FractalSettings *fractalSettings;
     InputSettings *inputSettings;
+    MouseState *mouseState;
     GLFWwindow *window;
+
+    int windowWidth;
+    int windowHeight;
 
   public:
     Application(GLFWwindow *window);
     ~Application();
     void mainLoop(Shader *sh);
     void run();
-    void handleInput(int key, int action);
+    void handleKeyInput(int key, int action);
+    void handleCursorMovement(double xpos, double ypos);
+    void handleMouseInput(int button, int action, int mods);
+    void handleScrollInput(double xoffset, double yoffset);
 };
 
 #endif

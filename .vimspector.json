@@ -1,0 +1,15 @@
+{
+  "$schema": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json",
+  "configurations": {
+    "debug": {
+      "adapter": "vscode-cpptools",
+      "configuration": {
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceRoot}/cmake-build-debug/fractualiser",
+        "cwd": "${workspaceRoot}/cmake-build-debug",
+        "stopAtEntry": true
+      }
+    }
+  }
+}
