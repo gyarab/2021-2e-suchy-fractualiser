@@ -22,6 +22,7 @@ struct InputSettings {
     double deltaOffsetY = 0;
     double mouseDeltaX = 0;
     double mouseDeltaY = 0;
+    bool printImage = false;
 };
 
 struct MouseState {
@@ -54,14 +55,16 @@ class Application {
     int windowHeight;
 
   public:
+    int bigRenderMultiplier = 8;
     Application(GLFWwindow *window);
     ~Application();
-    void mainLoop(Shader &sh);
+    void mainLoop(Shader &sh, unsigned int VBO);
     void run(std::string &formula);
     void handleKeyInput(int key, int action);
     void handleCursorMovement(double xpos, double ypos);
     void handleMouseInput(int button, int action, int mods);
     void handleScrollInput(double xoffset, double yoffset);
+    void writeBMPFromFrameBuffer(std::ofstream &file);
 };
 
 #endif

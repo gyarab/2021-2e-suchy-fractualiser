@@ -1,4 +1,5 @@
 #include "application.h"
+#include "bmpformat.h"
 #include "shader.h"
 #include <fstream>
 #include <iostream>
@@ -138,13 +139,16 @@ void Application::handleKeyInput(int key, int action) {
             std::cout << "time to render: " << performance->timeToRender << "\n" << std::endl;
         }
         break;
-
+    case GLFW_KEY_P:
+        if (action == GLFW_RELEASE) {
+            inputSettings->printImage = true;
+        }
     default:
         std::cout << "ignoring key" << std::endl;
     }
 }
 
-void Application::mainLoop(Shader &sh) {
+void Application::mainLoop(Shader &sh, unsigned int VBO) {
     clock_t start, end;
     while (!glfwWindowShouldClose(window)) {
         start = clock();
@@ -173,11 +177,84 @@ void Application::mainLoop(Shader &sh) {
 
         // draw
         sh.use();
+        if (inputSettings->printImage) {
+            sh.setIntVec("dimensions", windowWidth * bigRenderMultiplier, windowHeight * bigRenderMultiplier);
+            GLuint FramebufferName = 0;
+            glGenFramebuffers(1, &FramebufferName);
+            glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
+
+            // generate texture to display in the new buffer
+            GLuint renderedTexture;
+            glGenTextures(1, &renderedTexture);
+            glBindTexture(GL_TEXTURE_2D, renderedTexture);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, windowWidth * bigRenderMultiplier,
+                         windowHeight * bigRenderMultiplier, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+            // turn on filtering
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+            // Set "renderedTexture" as our colour attachement #0
+            glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
+
+            // Set the list of draw buffers.
+            GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+            glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+
+            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+                goto skip;
+
+            glViewport(0, 0, windowWidth * bigRenderMultiplier, windowHeight * bigRenderMultiplier);
+
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+            glfwSwapBuffers(window);
+
+            std::ofstream output("image.bmp");
+            writeBMPFromFrameBuffer(output);
+            output.close();
+
+            std::cout << "Render complete" << std::endl;
+
+            // bind old buffers and textures
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glViewport(0, 0, windowWidth, windowHeight);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICES), VERTICES, GL_STATIC_DRAW);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)nullptr);
+            glEnableVertexAttribArray(0);
+        }
+    skip:
+        inputSettings->printImage = false;
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glfwSwapBuffers(window);
         glfwPollEvents();
         end = clock();
         performance->timeToRender = end - start;
+    }
+}
+
+void Application::writeBMPFromFrameBuffer(std::ofstream &file) {
+    int sizeToWrite = windowWidth * windowHeight * bigRenderMultiplier * bigRenderMultiplier * 3;
+    BMP::Header bmp_header{.file_size = (int)(sizeToWrite + sizeof(BMP::Header) + sizeof(BMP::DIBHeader)),
+                           .bitmap_start = sizeof(BMP::Header) + sizeof(BMP::DIBHeader)};
+    file.write((char *)&bmp_header, sizeof(BMP::Header));
+
+    BMP::DIBHeader dib_header{
+        .width = windowWidth * bigRenderMultiplier,
+        .height = windowHeight * bigRenderMultiplier,
+        .bitmap_size = sizeToWrite,
+        .v_res = windowWidth * bigRenderMultiplier,
+        .h_res = windowHeight * bigRenderMultiplier,
+    };
+    file.write((char *)&dib_header, sizeof(BMP::DIBHeader));
+
+    int y = windowHeight * bigRenderMultiplier;
+    while (y >= 0) {
+        unsigned char rowdata[windowWidth * bigRenderMultiplier * 3];
+        glReadPixels(0, y, windowWidth * bigRenderMultiplier, 1, GL_BGR, GL_UNSIGNED_BYTE, rowdata);
+        file.write((char *)rowdata, windowWidth * bigRenderMultiplier * 3);
+        y--; // TODO: make it a for loop
     }
 }
 
@@ -213,6 +290,7 @@ void Application::run(std::string &formula) {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)nullptr);
     glEnableVertexAttribArray(0);
 
+    // create and bind the color texture for color sampling
     unsigned int texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_1D, texture);
@@ -222,5 +300,5 @@ void Application::run(std::string &formula) {
 
     glTexImage1D(GL_TEXTURE_1D, 0, GL_RGB, sizeof(data) / 3, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 
-    mainLoop(sh);
+    mainLoop(sh, VBO);
 }
