@@ -19,3 +19,22 @@ $ make
 ```
 Následně můžete program spustit pomocí: `./fractualiser -h`
 
+### Použití
+```
+Usage: fractualiser [options] [formula]
+  -h, --help       Shows this help message
+  -m, --multiplier How many times should a big render be bigger (default: 4)
+  formula          The formula to calculate (default: z*z+c)
+                   Supported operations: +-*/ with complex numbers
+                   c - position of the current pixel in the complex plane
+                   z - the iterated and final computed value
+
+Controls: Use your mouse or ASDF (E-zoom in, Q-zoom out) to control the camera.
+  F - increase iteration count, C - decrase iteration count
+  G - print debug information and camera position
+  P - create a big render - the output is in image.bmp
+  ESC - exit the program
+
+Fractualiser (fract(al)(vis)ualiser) is a program to render fractals using
+OpenGL on a GPU.
+```
