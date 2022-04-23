@@ -213,6 +213,9 @@ void Application::mainLoop(Shader &sh, unsigned int VBO) {
             writeBMPFromFrameBuffer(output);
             output.close();
 
+            glDeleteFramebuffers(1, &FramebufferName);
+            glDeleteTextures(1, &renderedTexture);
+
             std::cout << "Render complete" << std::endl;
 
             // bind old buffers and textures
@@ -249,12 +252,10 @@ void Application::writeBMPFromFrameBuffer(std::ofstream &file) {
     };
     file.write((char *)&dib_header, sizeof(BMP::DIBHeader));
 
-    int y = windowHeight * bigRenderMultiplier;
-    while (y >= 0) {
+    for (int y = windowHeight * bigRenderMultiplier; y >= 0; y--) {
         unsigned char rowdata[windowWidth * bigRenderMultiplier * 3];
         glReadPixels(0, y, windowWidth * bigRenderMultiplier, 1, GL_BGR, GL_UNSIGNED_BYTE, rowdata);
         file.write((char *)rowdata, windowWidth * bigRenderMultiplier * 3);
-        y--; // TODO: make it a for loop
     }
 }
 
