@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 
-int main() {
+int main(int argc, char **argv) {
     if (!glfwInit()) {
         std::cout << "Failed to initialise GLFW" << std::endl;
         return 1;
@@ -29,10 +29,15 @@ int main() {
         return 1;
     }
 
-    Application *app = new Application(window);
-    app->run();
+    Application app = Application(window);
 
-    delete app;
+    std::string formula;
+    if (argc > 1) {
+        formula = std::string(argv[1]);
+    } else {
+        formula = "z*z-0.8+0.156i";
+    }
+    app.run(formula);
 
     glfwTerminate();
 }

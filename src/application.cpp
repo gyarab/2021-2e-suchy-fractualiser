@@ -144,7 +144,7 @@ void Application::handleKeyInput(int key, int action) {
     }
 }
 
-void Application::mainLoop(Shader *sh) {
+void Application::mainLoop(Shader &sh) {
     clock_t start, end;
     while (!glfwWindowShouldClose(window)) {
         start = clock();
@@ -165,14 +165,14 @@ void Application::mainLoop(Shader *sh) {
         windowHeight = dimensions[3];
 
         // set shader uniforms
-        sh->setIntVec("dimensions", dimensions[2], dimensions[3]);
-        sh->setInt("iterations", fractalSettings->iterations);
-        sh->setDouble("offsetx", fractalSettings->offsetX);
-        sh->setDouble("offsety", fractalSettings->offsetY);
-        sh->setDouble("zoom", fractalSettings->zoom);
+        sh.setIntVec("dimensions", dimensions[2], dimensions[3]);
+        sh.setInt("iterations", fractalSettings->iterations);
+        sh.setDouble("offsetx", fractalSettings->offsetX);
+        sh.setDouble("offsety", fractalSettings->offsetY);
+        sh.setDouble("zoom", fractalSettings->zoom);
 
         // draw
-        sh->use();
+        sh.use();
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -181,7 +181,7 @@ void Application::mainLoop(Shader *sh) {
     }
 }
 
-void Application::run() {
+void Application::run(std::string &formula) {
     glViewport(0, 0, 800, 800);
 
     glfwSetKeyCallback(window, key_callback);
@@ -201,9 +201,7 @@ void Application::run() {
 
     std::string fragmentShaderSource = ss.str();
 
-    std::string formula = "z*z-0.8+0.156i";
-
-    auto *sh = new Shader(fragmentShaderSource, formula);
+    auto sh = Shader(fragmentShaderSource, formula);
 
     // create an object that covers the whole screen so the fragment shader runs
     unsigned int VBO, VAO;
@@ -225,6 +223,4 @@ void Application::run() {
     glTexImage1D(GL_TEXTURE_1D, 0, GL_RGB, sizeof(data) / 3, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 
     mainLoop(sh);
-
-    delete sh;
 }

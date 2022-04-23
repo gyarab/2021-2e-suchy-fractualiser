@@ -56,8 +56,8 @@ class Application {
   public:
     Application(GLFWwindow *window);
     ~Application();
-    void mainLoop(Shader *sh);
-    void run();
+    void mainLoop(Shader &sh);
+    void run(std::string &formula);
     void handleKeyInput(int key, int action);
     void handleCursorMovement(double xpos, double ypos);
     void handleMouseInput(int button, int action, int mods);
