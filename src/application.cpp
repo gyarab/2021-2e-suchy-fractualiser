@@ -199,33 +199,30 @@ void Application::mainLoop(Shader &sh, unsigned int VBO) {
             GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
             glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
 
-            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-                goto skip;
+            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+                glViewport(0, 0, windowWidth * bigRenderMultiplier, windowHeight * bigRenderMultiplier);
 
-            glViewport(0, 0, windowWidth * bigRenderMultiplier, windowHeight * bigRenderMultiplier);
+                glDrawArrays(GL_TRIANGLES, 0, 6);
+                glfwSwapBuffers(window);
 
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-            glfwSwapBuffers(window);
+                std::ofstream output("image.bmp");
+                writeBMPFromFrameBuffer(output);
+                output.close();
 
-            std::ofstream output("image.bmp");
-            writeBMPFromFrameBuffer(output);
-            output.close();
+                std::cout << "Render complete" << std::endl;
+            } else {
+                std::cout << "Render failed" << std::endl;
+            }
 
             glDeleteFramebuffers(1, &FramebufferName);
             glDeleteTextures(1, &renderedTexture);
-
-            std::cout << "Render complete" << std::endl;
 
             // bind old buffers and textures
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glBindTexture(GL_TEXTURE_2D, 0);
             glViewport(0, 0, windowWidth, windowHeight);
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICES), VERTICES, GL_STATIC_DRAW);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)nullptr);
-            glEnableVertexAttribArray(0);
         }
-    skip:
         inputSettings.printImage = false;
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glfwSwapBuffers(window);

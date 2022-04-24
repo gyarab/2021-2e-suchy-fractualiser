@@ -53,10 +53,10 @@ class Application {
 
     int windowWidth;
     int windowHeight;
-
-  public:
     int bigRenderMultiplier = 8;
     std::string colorFilePath;
+
+  public:
     Application(GLFWwindow *window, int bigRenderMultiplier, std::string &colorFilePath);
     ~Application();
     void mainLoop(Shader &sh, unsigned int VBO);
