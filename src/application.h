@@ -45,10 +45,10 @@ class Application {
         1.0f,  1.0f,  0.0f, 1.0f,  -1.0f, 0.0f, -1.0f, -1.0f, 0.0f,
     };
 
-    Performance *performance;
-    FractalSettings *fractalSettings;
-    InputSettings *inputSettings;
-    MouseState *mouseState;
+    Performance performance;
+    FractalSettings fractalSettings;
+    InputSettings inputSettings;
+    MouseState mouseState;
     GLFWwindow *window;
 
     int windowWidth;
@@ -56,7 +56,8 @@ class Application {
 
   public:
     int bigRenderMultiplier = 8;
-    Application(GLFWwindow *window);
+    std::string colorFilePath;
+    Application(GLFWwindow *window, int bigRenderMultiplier, std::string &colorFilePath);
     ~Application();
     void mainLoop(Shader &sh, unsigned int VBO);
     void run(std::string &formula);

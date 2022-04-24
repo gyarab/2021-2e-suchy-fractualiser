@@ -5,20 +5,18 @@
 #include <iostream>
 #include <sstream>
 
-Application::Application(GLFWwindow *window) {
-    fractalSettings = new FractalSettings;
-    inputSettings = new InputSettings;
-    performance = new Performance;
-    mouseState = new MouseState;
+Application::Application(GLFWwindow *window, int bigRenderMultiplier, std::string &colorFilePath) {
+    this->bigRenderMultiplier = bigRenderMultiplier;
+    this->colorFilePath = colorFilePath;
+    fractalSettings = FractalSettings();
+    inputSettings = InputSettings();
+    performance = Performance();
+    mouseState = MouseState();
     this->window = window;
     glfwSetWindowUserPointer(window, this);
 }
 
 Application::~Application() {
-    delete fractalSettings;
-    delete inputSettings;
-    delete performance;
-    delete mouseState;
     glfwSetWindowUserPointer(this->window, nullptr);
     std::cout << "Cleaned up application" << std::endl;
 }
@@ -45,13 +43,13 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
 }
 
 void Application::handleCursorMovement(double xpos, double ypos) {
-    double deltax = xpos - mouseState->posX;
-    double deltay = ypos - mouseState->posY;
-    mouseState->posX = xpos;
-    mouseState->posY = ypos;
-    if (mouseState->lmbPressed) {
-        inputSettings->mouseDeltaX += deltax * fractalSettings->zoom / windowHeight;
-        inputSettings->mouseDeltaY += deltay * fractalSettings->zoom / windowHeight;
+    double deltax = xpos - mouseState.posX;
+    double deltay = ypos - mouseState.posY;
+    mouseState.posX = xpos;
+    mouseState.posY = ypos;
+    if (mouseState.lmbPressed) {
+        inputSettings.mouseDeltaX += deltax * fractalSettings.zoom / windowHeight;
+        inputSettings.mouseDeltaY += deltay * fractalSettings.zoom / windowHeight;
     }
 }
 
@@ -60,22 +58,22 @@ void Application::handleMouseInput(int key, int action, int mods) {
         return;
     switch (key) {
     case GLFW_MOUSE_BUTTON_LEFT:
-        mouseState->lmbPressed = action == GLFW_PRESS;
+        mouseState.lmbPressed = action == GLFW_PRESS;
         break;
     case GLFW_MOUSE_BUTTON_RIGHT:
-        mouseState->rmbPressed = action == GLFW_PRESS;
-        mouseState->deltaZoom = 0;
+        mouseState.rmbPressed = action == GLFW_PRESS;
+        mouseState.deltaZoom = 0;
         break;
     case GLFW_MOUSE_BUTTON_MIDDLE:
-        mouseState->mmbPressed = action == GLFW_PRESS;
+        mouseState.mmbPressed = action == GLFW_PRESS;
     }
 }
 
 void Application::handleScrollInput(double xoffset, double yoffset) {
-    double deltazoom = 0.1 * yoffset * fractalSettings->zoom;
-    fractalSettings->offsetX += (mouseState->posX - windowWidth / 2.0) * deltazoom / windowHeight;
-    fractalSettings->offsetY -= (mouseState->posY - windowHeight / 2.0) * deltazoom / windowHeight;
-    fractalSettings->zoom -= deltazoom;
+    double deltazoom = 0.1 * yoffset * fractalSettings.zoom;
+    fractalSettings.offsetX += (mouseState.posX - windowWidth / 2.0) * deltazoom / windowHeight;
+    fractalSettings.offsetY -= (mouseState.posY - windowHeight / 2.0) * deltazoom / windowHeight;
+    fractalSettings.zoom -= deltazoom;
 }
 
 void Application::handleKeyInput(int key, int action) {
@@ -98,50 +96,50 @@ void Application::handleKeyInput(int key, int action) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         break;
     case GLFW_KEY_W:
-        inputSettings->deltaOffsetY += 0.01 * k;
+        inputSettings.deltaOffsetY += 0.01 * k;
         break;
     case GLFW_KEY_S:
-        inputSettings->deltaOffsetY += -0.01 * k;
+        inputSettings.deltaOffsetY += -0.01 * k;
         break;
     case GLFW_KEY_A:
-        inputSettings->deltaOffsetX += -0.01 * k;
+        inputSettings.deltaOffsetX += -0.01 * k;
         break;
     case GLFW_KEY_D:
-        inputSettings->deltaOffsetX += 0.01 * k;
+        inputSettings.deltaOffsetX += 0.01 * k;
         break;
     case GLFW_KEY_E:
-        inputSettings->deltaZoom += -0.1 * k;
+        inputSettings.deltaZoom += -0.1 * k;
         break;
     case GLFW_KEY_Q:
-        inputSettings->deltaZoom += 0.1 * k;
+        inputSettings.deltaZoom += 0.1 * k;
         break;
     case GLFW_KEY_F:
-        inputSettings->deltaIter += k;
+        inputSettings.deltaIter += k;
         break;
     case GLFW_KEY_C:
-        inputSettings->deltaIter += -k;
+        inputSettings.deltaIter += -k;
         break;
     case GLFW_KEY_G:
         if (action == GLFW_PRESS) {
             std::cout << "============================================" << std::endl;
-            std::cout << "deltaOffsetX " << inputSettings->deltaOffsetX << "\n"
-                      << "deltaOffsetY " << inputSettings->deltaOffsetY << "\n"
-                      << "deltaIter    " << inputSettings->deltaIter << "\n"
-                      << "deltaZoom    " << inputSettings->deltaZoom << "\n"
+            std::cout << "deltaOffsetX " << inputSettings.deltaOffsetX << "\n"
+                      << "deltaOffsetY " << inputSettings.deltaOffsetY << "\n"
+                      << "deltaIter    " << inputSettings.deltaIter << "\n"
+                      << "deltaZoom    " << inputSettings.deltaZoom << "\n"
                       << std::endl;
 
             std::cout.precision(17);
-            std::cout << "offsetX " << fractalSettings->offsetX << "\n"
-                      << "offsetY " << fractalSettings->offsetY << "\n"
-                      << "iter    " << fractalSettings->iterations << "\n"
-                      << "zoom    " << fractalSettings->zoom << "\n"
+            std::cout << "offsetX " << fractalSettings.offsetX << "\n"
+                      << "offsetY " << fractalSettings.offsetY << "\n"
+                      << "iter    " << fractalSettings.iterations << "\n"
+                      << "zoom    " << fractalSettings.zoom << "\n"
                       << std::endl;
-            std::cout << "time to render: " << performance->timeToRender << "\n" << std::endl;
+            std::cout << "time to render: " << performance.timeToRender << "\n" << std::endl;
         }
         break;
     case GLFW_KEY_P:
         if (action == GLFW_RELEASE) {
-            inputSettings->printImage = true;
+            inputSettings.printImage = true;
         }
     default:
         std::cout << "ignoring key" << std::endl;
@@ -154,13 +152,13 @@ void Application::mainLoop(Shader &sh, unsigned int VBO) {
         start = clock();
 
         // update viewport according to input
-        fractalSettings->iterations += inputSettings->deltaIter;
-        fractalSettings->offsetX += inputSettings->deltaOffsetX * fractalSettings->zoom - inputSettings->mouseDeltaX;
-        fractalSettings->offsetY += inputSettings->deltaOffsetY * fractalSettings->zoom + inputSettings->mouseDeltaY;
-        fractalSettings->zoom += (inputSettings->deltaZoom) * fractalSettings->zoom;
+        fractalSettings.iterations += inputSettings.deltaIter;
+        fractalSettings.offsetX += inputSettings.deltaOffsetX * fractalSettings.zoom - inputSettings.mouseDeltaX;
+        fractalSettings.offsetY += inputSettings.deltaOffsetY * fractalSettings.zoom + inputSettings.mouseDeltaY;
+        fractalSettings.zoom += (inputSettings.deltaZoom) * fractalSettings.zoom;
 
-        inputSettings->mouseDeltaX = 0;
-        inputSettings->mouseDeltaY = 0;
+        inputSettings.mouseDeltaX = 0;
+        inputSettings.mouseDeltaY = 0;
 
         // get viewport dimensions
         int dimensions[4];
@@ -170,14 +168,14 @@ void Application::mainLoop(Shader &sh, unsigned int VBO) {
 
         // set shader uniforms
         sh.setIntVec("dimensions", dimensions[2], dimensions[3]);
-        sh.setInt("iterations", fractalSettings->iterations);
-        sh.setDouble("offsetx", fractalSettings->offsetX);
-        sh.setDouble("offsety", fractalSettings->offsetY);
-        sh.setDouble("zoom", fractalSettings->zoom);
+        sh.setInt("iterations", fractalSettings.iterations);
+        sh.setDouble("offsetx", fractalSettings.offsetX);
+        sh.setDouble("offsety", fractalSettings.offsetY);
+        sh.setDouble("zoom", fractalSettings.zoom);
 
         // draw
         sh.use();
-        if (inputSettings->printImage) {
+        if (inputSettings.printImage) {
             sh.setIntVec("dimensions", windowWidth * bigRenderMultiplier, windowHeight * bigRenderMultiplier);
             GLuint FramebufferName = 0;
             glGenFramebuffers(1, &FramebufferName);
@@ -228,12 +226,12 @@ void Application::mainLoop(Shader &sh, unsigned int VBO) {
             glEnableVertexAttribArray(0);
         }
     skip:
-        inputSettings->printImage = false;
+        inputSettings.printImage = false;
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glfwSwapBuffers(window);
         glfwPollEvents();
         end = clock();
-        performance->timeToRender = end - start;
+        performance.timeToRender = end - start;
     }
 }
 
@@ -270,7 +268,7 @@ void Application::run(std::string &formula) {
     glfwSetScrollCallback(window, scroll_callback);
 
     // preload current cursor position
-    glfwGetCursorPos(window, &mouseState->posX, &mouseState->posY);
+    glfwGetCursorPos(window, &mouseState.posX, &mouseState.posY);
 
     std::ifstream shader_file("shader.glsl");
     std::stringstream ss{};
