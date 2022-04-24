@@ -245,7 +245,7 @@ void Application::writeBMPFromFrameBuffer(std::ofstream &file) {
     };
     file.write((char *)&dib_header, sizeof(BMP::DIBHeader));
 
-    for (int y = windowHeight * bigRenderMultiplier; y >= 0; y--) {
+    for (int y = windowHeight * bigRenderMultiplier - 1; y >= 0; y--) {
         unsigned char rowdata[windowWidth * bigRenderMultiplier * 3];
         glReadPixels(0, y, windowWidth * bigRenderMultiplier, 1, GL_BGR, GL_UNSIGNED_BYTE, rowdata);
         file.write((char *)rowdata, windowWidth * bigRenderMultiplier * 3);
