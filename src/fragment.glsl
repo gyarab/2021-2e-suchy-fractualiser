@@ -18,8 +18,8 @@ void main() {
     int i;
     for (i = 0; i < iterations; i++) {
          %formula%
-         if (z.x*z.x+z.y*z.y > 30000000) { break; }
+         if (z.x*z.x+z.y*z.y > 900) { break; }
     }
-    if (i == iterations) FragColor = texture(texture1, 0.0f);
-    else FragColor = texture(texture1, float(i)/float(iterations)-0.5f);
+    if (i == iterations) FragColor = texture(texture1, 1.0f);
+    else FragColor = texture(texture1, float(i)/float(iterations));
 }

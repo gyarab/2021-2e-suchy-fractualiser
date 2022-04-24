@@ -18,7 +18,6 @@ int main(int argc, char **argv) {
                       << "  -m, --multiplier How many times should a big render be bigger (default: 4)" << std::endl
                       << "  -c, --colors     Path to a file with newline seperated list" << std::endl
                       << "                   of hex colors (#ffffff)" << std::endl
-                      << std::endl
                       << "  formula          The formula to calculate (default: z*z+c)" << std::endl
                       << "                   Supported operations: +-*/ with complex numbers" << std::endl
                       << "                   c - position of the current pixel in the complex plane" << std::endl

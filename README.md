@@ -24,6 +24,8 @@ Následně můžete program spustit pomocí: `./fractualiser -h`
 Usage: fractualiser [options] [formula]
   -h, --help       Shows this help message
   -m, --multiplier How many times should a big render be bigger (default: 4)
+  -c, --colors     Path to a file with newline seperated list
+                   of hex colors (#ffffff)
   formula          The formula to calculate (default: z*z+c)
                    Supported operations: +-*/ with complex numbers
                    c - position of the current pixel in the complex plane

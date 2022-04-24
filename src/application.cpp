@@ -334,6 +334,8 @@ void Application::run(std::string &formula) {
     glBindTexture(GL_TEXTURE_1D, texture);
     glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTexImage1D(GL_TEXTURE_1D, 0, GL_RGB, colors.size() / 3, 0, GL_RGB, GL_UNSIGNED_BYTE, colors.data());
 

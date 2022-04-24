@@ -10,10 +10,6 @@ struct FractalSettings {
     double zoom = 5.0;
     double offsetX = -0.8;
     double offsetY = 0.0;
-    // int iterations = 769;
-    // double zoom = 0.00000000000005276;
-    // double offsetX = -1.49485999999895625;
-    // double offsetY = 0.0;
 };
 
 struct InputSettings {
