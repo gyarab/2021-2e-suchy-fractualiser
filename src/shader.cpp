@@ -120,7 +120,6 @@ std::string evalExpr(const std::string &expression) {
 
 std::string Shader::fabricateShaderCode(std::string src, const std::string &formula) {
     std::string e = evalExpr(formula);
-    std::cout << e << std::endl;
     int index = src.find("%formula%");
     if (index < 0)
         return "";

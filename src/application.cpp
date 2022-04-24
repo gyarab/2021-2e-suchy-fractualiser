@@ -141,8 +141,6 @@ void Application::handleKeyInput(int key, int action) {
         if (action == GLFW_RELEASE) {
             inputSettings.printImage = true;
         }
-    default:
-        std::cout << "ignoring key" << std::endl;
     }
 }
 
@@ -254,7 +252,51 @@ void Application::writeBMPFromFrameBuffer(std::ofstream &file) {
     }
 }
 
+bool Application::loadColorsFromFile(std::vector<unsigned char> &colors) {
+    size_t idx = 1;
+    std::ifstream colorFile(colorFilePath);
+    if (!colorFile.is_open()) {
+        std::cout << "failed to load color data" << std::endl;
+        colorFile.close();
+        return true;
+    }
+    std::string line;
+    int line_no = 1;
+    while (std::getline(colorFile, line)) {
+        if (line.length() != 7 || line[0] != '#') {
+            std::cout << "invalid hex color on line " << line_no << ": " << line << std::endl;
+            colorFile.close();
+            return true;
+        }
+        try {
+            unsigned long parsed = std::stoul(line.substr(1), nullptr, 16);
+            unsigned char b = parsed & 0xff;
+            parsed >>= 8;
+            unsigned char g = parsed & 0xff;
+            parsed >>= 8;
+            unsigned char r = parsed & 0xff;
+            colors.push_back(r);
+            colors.push_back(g);
+            colors.push_back(b);
+        } catch (std::invalid_argument &e) {
+            std::cout << "error while parsing on line " << line_no << ": \"" << line << "\" is an invalid hex number"
+                      << std::endl;
+            return true;
+        }
+        line_no++;
+    }
+    colorFile.close();
+    return false;
+}
+
 void Application::run(std::string &formula) {
+    if (!colorFilePath.empty()) {
+        std::vector<unsigned char> new_colors;
+        if (loadColorsFromFile(new_colors))
+            std::cout << "error while reading colors, falling back to default" << std::endl;
+        else
+            colors = new_colors;
+    }
     glViewport(0, 0, 800, 800);
 
     glfwSetKeyCallback(window, key_callback);
@@ -292,9 +334,8 @@ void Application::run(std::string &formula) {
     glBindTexture(GL_TEXTURE_1D, texture);
     glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    unsigned char data[] = {0xe7, 0x6f, 0x51, 0xf4, 0xa2, 0x61, 0xe9, 0xc4, 0x6a, 0x2a, 0x9d, 0x8f, 0x26, 0x46, 0x53};
 
-    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGB, sizeof(data) / 3, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGB, colors.size() / 3, 0, GL_RGB, GL_UNSIGNED_BYTE, colors.data());
 
     mainLoop(sh, VBO);
 }

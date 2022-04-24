@@ -3,6 +3,7 @@
 
 #include "shader.h"
 #include <GLFW/glfw3.h>
+#include <vector>
 
 struct FractalSettings {
     int iterations = 30;
@@ -56,11 +57,15 @@ class Application {
     int bigRenderMultiplier = 8;
     std::string colorFilePath;
 
+    std::vector<unsigned char> colors = {0xe7, 0x6f, 0x51, 0xf4, 0xa2, 0x61, 0xe9, 0xc4,
+                                         0x6a, 0x2a, 0x9d, 0x8f, 0x26, 0x46, 0x53};
+
   public:
     Application(GLFWwindow *window, int bigRenderMultiplier, std::string &colorFilePath);
     ~Application();
     void mainLoop(Shader &sh, unsigned int VBO);
     void run(std::string &formula);
+    bool loadColorsFromFile(std::vector<unsigned char> &colors);
     void handleKeyInput(int key, int action);
     void handleCursorMovement(double xpos, double ypos);
     void handleMouseInput(int button, int action, int mods);
