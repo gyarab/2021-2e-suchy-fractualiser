@@ -1,0 +1,23 @@
+\section{Paralelizace a rychlý render}
+Jeden z hlavních problémů v tomto projektu byla rychlost výpočtu zadané rovnice
+pro každý pixel. Naštěstí výpočet každého pixelu je možné definovat jako čistou
+funkci (anglicky pure fun\-ction)\footnote{Čisté funkce jsou funkce, které jen a
+pouze vrací výsledek. Nemohou tedy např. vypsat hodnotu, nebo změnit jejich
+vstup.}. Díky tomu víme, že je možné tento problém paralelizovat a jednotlivé
+pixely lze bez omezení počítat současně, jelikož jeden na druhém nezávisí.
+
+Při paralelizaci je standardně problém s orchestrací jednotlivých podprocesů,
+tzn. dávání práce a získání výsledků. Naštěstí je tento problém velmi častý a
+je vyřešen i pro tento specifický případ. Krom speciálního hardwaru, GPU
+(Graphics Processing Unit), také existují API, které nám ho zprostředkují.
+
+Jedno z moderních API je OpenGL. Jedná se o knihovnu, která zpřístupní
+funkcionalitu GPU pomocí několika funkcí. Jazyky C++ a C sdílejí tuto samou
+knihovnu, a tím pádem její používání vypadá velmi podobně v obou jazycích.
+Bohužel to znamená, že nevyužívá všechny možnosti moderního C++ a OOP.
+
+OpenGL podporuje vykreslování objektů ve 3D, což v našem případě není potřeba,
+jelikož vykreslujeme jen jednu rovinu. Vykreslujeme tedy jen jeden objekt,
+který pokrývá celé okno.
+
+% TODO: shadery, render pipeline
