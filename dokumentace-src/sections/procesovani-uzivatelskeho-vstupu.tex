@@ -1,0 +1,27 @@
+\section{Procesování vstupu}
+Fractualiser lze ovládat klávesnicí i myší. Vstup z klávesnice i myši je
+nejdříve zachycen knihovnou GLFW, která nám poskytuje abstrakci od jednotlivých
+API operačních systémů, nebo desktop managerů. Místo psaní toho samého kódu
+několika způsoby pro Windows, X11 pro Linux, nebo pro MacOS můžeme použít GLFW
+a ta nám připraví okno, ve kterém můžeme pracovat, a funkce, pomocí kterých
+můžeme poslouchat příchozí vstupy od uživatele.
+
+S myší lze obrazem pohybovat, nebo ho přiblížit či oddálit kolečkem. To samé
+lze učinit pomocí kláves WASD a QE. Pomocí klávesnice můžeme vyvolat další
+akce:
+\begin{itemize}
+    \item{\textbf{F/C} - ovládání počtu iterací. Klávesa F zvyšuje 
+        maximální počet iterací pro každý pixel. Klávesa C ho snižuje.}
+    \item{\textbf{G} - zobrazí informace o stavu programu}
+    \item{\textbf{P} - začne export obrázku}
+    \item{\textbf{ESC} - ukončí program}
+\end{itemize}
+
+GLFW nám umožňuje číst vstup vícekrát za jeden snímek. Toto je užitečné a
+dovoluje nám mít rezponzivnější program. Zároveň je ale potřeba si zapamatovat
+všechny vstupy do té doby, co program nevykreslí další snímek. Mimo hlavní
+nastavení zobrazovaného grafu je také dočasné, které akumuluje změnu, kterou je
+potřeba provést před dalším snímkem. Po každém vykreslení snímku se toto
+nastavení vynuluje a následně se do něj načtou další vstupy.
+
+\vfill\eject

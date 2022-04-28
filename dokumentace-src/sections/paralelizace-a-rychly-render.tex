@@ -20,4 +20,72 @@ OpenGL podporuje vykreslování objektů ve 3D, což v našem případě není p
 jelikož vykreslujeme jen jednu rovinu. Vykreslujeme tedy jen jeden objekt,
 který pokrývá celé okno.
 
-% TODO: shadery, render pipeline
+\subsection{OpenGL pipeline, shadery}
+OpenGL render pipeline jsou kroky, co OpenGL provádí při každém renderu snímku
+na obrazovce. Je definován pěti částmi, které běží na
+GPU:\autocite{openglpipel}
+\begin{enumerate}
+    \item{Procesování vrcholů - upravuje jednotlivé vrcholy, aby dopovídaly
+        např. pohledu kamery ve světě.}
+    \item{Post-procesování vrcholů - další úpravy na jednotlivých vrcholech.}
+    \item{Skládání vrcholů do ploch a objektů.}
+    \item{Rasterizace - velmi důležitý krok u fractualiséru, jelikož se v tomto
+        kroku generují výsledné pixely.}
+    \item{Per-sample procesování - krok ve kterém se například míchají textury.
+        Post-pro\-ce\-so\-vá\-ní jednotlivých pixelů.}
+\end{enumerate}
+
+Každý krok lze ovlivnit pomocí shaderů, což jsou programy, které běží přímo na
+GPU. Při procesování vrcholů se spouští vertex shader. V našem případě je velmi
+jednoduchý. Vykreslujeme jen jednu plochu a vrcholy, co zadáme k vykreslení
+nemusíme nijak měnit.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.45\textwidth]{vrstvy.png}
+\caption{Vrstvy, které vznikají při iteraci zadané rovnice}
+\label{fig:vrstvy}
+\end{figure}
+
+Další z shaderů je fragment shader, který běží ve čtvrtém kroku renderovací
+pipeline - rasterizaci. Toto je nejzásadnější část kódu, protože právě ta nám
+umožní každý pixel na obrazovce zabarvit podle vypočítané rovnice. Tento shader
+musí pro naše účely udělat několik věcí: 1. převést pozici pixelu, který počítá
+na pozici v grafu, 2. spočítat, jestli bod patří do množiny a kolik iterací
+bylo potřeba, abychom odhalili, že v množině není, 3. vybrat správnou barvu
+výsledného pixelu z textury (tento krok je standardní ve všech fragment
+shaderech). V kroku 2 bychom mohli rozhodovat čistě jen hodnotou ano či ne,
+ale zapamatování si kolik iterací bylo potřeba je mnohem zajímavější a na obrázku
+můžeme poté vidět jednotlivé vrstvy, jak se fraktál odhaluje (obrázek \ref{fig:vrstvy}).
+
+\subsection{Generování shaderů}
+Další z problémů, který bylo nutné vyřešit, bylo generování shader kódu ze
+zadané matematické funkce. Vzhledem k tomu, že se shader musí kompilovat při
+běhu programu, nebyl velký problém samotná kompilace, ale získání správného
+kódu. Zvolil jsem cestu rekurzivního přepsání originální funkce na zdrojový
+kód, který je poté vložen do zbytku shaderu. Zbytek shaderu je přečten ze
+souboru v pracovním adresáři pod názvem \texttt{shader.glsl}. Zkušený uživatel
+si tak tímto může shader upravit a generovat i jiné fraktaly, než ty, které
+v tuto chvíli fractualiser podporuje.
+
+Princip přepisu spočívá ve standarním průchodu aritmetického výrazu, jako
+u vytváření aritmetického stromu. Místo vytváření uzlů ale vytváříme kusy
+kódu, které poté spojíme dohromady, abychom dostali konečný výraz přepsaný
+do GLSL kódu.
+
+Jazyk GLSL standardně nepodporuje komplexní čísla, ale dokáže pracovat s
+vektory. Kaž\-dé komplexní číslo je tedy znázorněno jako dvouprvkový vektor.
+Kvůli tomuto omezení bylo potřeba vytvořit funkce pro násobení a dělení,
+jelikož násobení vektorů není ekvivalentí násobení komplexních čísel. Sčitání a
+odčítání však pro dvouprvkové vektory je.
+
+Fukce $z*z*z + 3z - 0.2 + 0.1i$ by například po přepisu do GLSL kódu vypadala
+následovně:
+\texttt{mult(mult(z, z), z) + mult(dvec2(3, 0), \\z) - dvec2(0.1, 0) + dvec2(0, 0.2)}.
+
+Fractualiser zatím podporuje jen násobení, dělení, sčítání a odčítání, ale
+přidání dalších funkcí by nebyl problém. Zároveň jsou tyto operace dostatečné
+na vykreslení mnoha funkcí. Jedna z optimalizací, která se nabízí, je předpočítání
+konstant. Ve vygenerovaném kódu v minulém odstavci můžeme vidět, že $-0.2$ a $0.1i$
+byly přepsány jako dva odlišné vektory. Přitom mohou být spojeny do jednoho:
+\texttt{dvec2(-0.2, 0.1)}.

@@ -1,0 +1,52 @@
+\section{Export obrázku}
+Další cíl fractualiseru byla možnost vyexportovat obrázek, který může mít
+několikrát větší rozlišení, než monitor uživatele. Vyexportovaný obrázek
+lze poté využít například pro tisk, nebo do jiných kreativních projektů.
+
+OpenGL vykresluje obraz do \texttt{FrameBuffer}u. Tento buffer je poté
+zobrazen v okně aplikace. Abychom se vyhli limitace velikosti okna, tak
+místo vykreslování do výchozího bufferu vykreslíme fraktál do textury,
+kterou poté můžeme po částech číst a zapsat do souboru.
+
+Zvolený formát exportovaného obrázku je Windows Bitmap kvůli jeho
+jednoduchosti. Z tohoto samého důvodu výsledný obrázek není komprimovaný a tím
+pádem může být i řádově větší než ten samý obrázek konvertovaný do formátu PNG.
+Serializace do Windows Bitmap formátu byla implementována podle specifikace \\
+\textcite{bitmapstorage}. Samotný formát je velmi minimalistický a jsou potřeba
+jen dvě hlavičky.
+
+\begin{lstlisting}
+struct Header {
+    char id[0x02] = {0x42, 0x4D};
+    int file_size;
+    char more_identifiers[4];
+    int bitmap_start;
+};
+struct DIBHeader {
+    int size_of_header;
+    int width;
+    int height;
+    unsigned short num_clr_panes;
+    unsigned short pixel_bitlen;
+    int compression;
+    int bitmap_size;
+    int v_res;
+    int h_res;
+    int n_colors;
+    int imp_colors;
+};
+\end{lstlisting}
+
+\texttt{Header} slouží k identifikaci \texttt{.bmp} formátu a poté k základním
+metadatům o jeho velikosti. \texttt{DIBHeader} popisuje danou bitmapu a
+specifikuje detaily o jejím rozlišení, nebo barvách.
+
+Jeden ze zvlástních problémů, který nastal při implementaci byl problém s
+výchozím zarovnáním \texttt{struct}ů na 4 byty. Toto mělo ale lehké řešení a to
+přidání \texttt{\#pragma pack(1)}, a\-by\-chom compiler upozornili, že nechceme, aby
+tento \texttt{struct} zarovnával.
+
+Alternativa k \texttt{.bmp} formátu by mohl být formát QOI (Quite OK Image formát),
+který je velmi jednoduchý, ale zároveň dokáže obsah komprimovat skoro stejně dobře,
+jako mnohem složitější PNG formát. Jediná jeho nevýhoda je špatná kompatibilita se
+znamými programy.

@@ -1,0 +1,22 @@
+\section{Kompilace}
+Kompilace Fractualiseru je zaručená jen na operačním systému Linux,
+Fractualiser ale nevyužívá žádných jeho specifických funkcí.
+Je k ní potřeba \texttt{CMake}, compiler schopný zkompilovat C++ a
+všechny dependence Fractualiseru (OpenGL, GLFW). Je potřeba také
+ke knihovnám mít dostupný \texttt{CMake} toolchain soubor, aby byl 
+\texttt{CMake} schopný najít knihovny pomocí \\\texttt{find\_package}.
+
+
+V kořenovém adresáři zdrojového kódu spu\-sťte přes příkazový řádek
+následující příkazy:
+\begin{lstlisting}
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
+$ cp ../src/fragment.glsl shader.glsl
+$ ./fractualiser -h
+\end{lstlisting}
+
+Fracutaliser by se po posledním příkazu měl spustit a vypsat
+instrukce pro jeho použití.
